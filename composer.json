@@ -1,0 +1,21 @@
+{
+    "name": "nextgenthemes/wp-settings",
+    "type": "wp-package",
+    "license": "GPL-3.0",
+    "autoload": {
+        "files": [
+            "src/WP/Asset.php",
+            "src/WP/Settings.php",
+            "src/load-admin-files.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Nicolas Jonas"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "nextgenthemes/wp-asset": "@dev"
+    }
+}
