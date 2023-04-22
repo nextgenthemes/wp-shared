@@ -14,16 +14,21 @@ if ( ! pageQueryVal ) {
 	throw 'Need page url arg';
 }
 
-const data = window[ pageQueryVal ];
-export const settings = data.settings as Record< string, OptionProps >;
-export const sections = data.sections as Record< string, string >;
+export const data = window[ pageQueryVal ] as InlineJS;
 export const options = writable( data.options );
-export const nonce = data.nonce as string;
-export const restURL = data.rest_url as string;
-export const premiumSections = data.premium_sections as string[];
-
 export const isSaving = writable( false );
 export const message = writable( '' );
+
+interface InlineJS {
+	settings: Record< string, OptionProps >;
+	sections: Record< string, string >;
+	options: Record< string, number | string | boolean >;
+	nonce: string;
+	restUrl: string;
+	premiumSections: string[];
+	premiumUrlPrefix: string;
+	definedKeys: string[];
+}
 
 interface OptionProps {
 	label: string;

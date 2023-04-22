@@ -1,20 +1,31 @@
 <script lang="ts">
-	import { options, settings, sections, restURL, nonce } from "./store";
+	import { data } from "./store";
+	const { settings, sections, premiumSections, premiumUrlPrefix } = data;
+
 	const { log } = console;
 
 	export let optionKey;
 	const type = settings[optionKey].type;
 	const label = settings[optionKey].label;
 	const tag = settings[optionKey].tag;
-
-	const premiumUrlPrefix = 'https://nextgenthemes.com/plugins/arve-';
 	const sectionLabel = sections[ settings[optionKey].tag ];
+
+	let premiumURL;
+
+	setPremiumURL();
+
+	function setPremiumURL() {
+		if ( premiumSections.includes( tag ) ) {
+			premiumURL = premiumUrlPrefix + tag;
+		}
+	}
+
 </script>
 
 <span class="ngt-label-text ngt-label-text--{type}">
 	{label}
-	{#if premiumUrlPrefix}
-		 <span>(</span><a href={premiumUrlPrefix + tag}>{sectionLabel}</a><span>)</span>
+	{#if premiumURL}
+		 <span>(</span><a href={premiumURL}>{sectionLabel}</a><span>)</span>
 	{/if}
 </span>
 

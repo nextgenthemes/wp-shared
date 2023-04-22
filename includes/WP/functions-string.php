@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace Nextgenthemes\WP;
 
 function str_contains_any( string $haystack, array $needles ) {

@@ -4,19 +4,32 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitdf1507af4e430c0936337e9ddce90b80
+class ComposerStaticInite92fe7833ea66260e8a6d773607022c2
 {
+    public static $files = array (
+        '0b26b6bb4ad9ab9c89426b9458e38836' => __DIR__ . '/../..' . '/php/WP/functions-asset-helpers.php',
+        'a0bb299fff35886d910a7ea3bf8f3fde' => __DIR__ . '/../..' . '/php/WP/functions-compat.php',
+        '7815eba235acb2ddf6ab32dcbe10140c' => __DIR__ . '/../..' . '/php/WP/functions-deprecated.php',
+        '48f1f6dd27647c0a754bfb138a65e316' => __DIR__ . '/../..' . '/php/WP/functions-array.php',
+        '15c5628ada16c527bb814d976d25da4b' => __DIR__ . '/../..' . '/php/WP/functions-string.php',
+        '5e0515b37788079fd88203e8dcb7adcc' => __DIR__ . '/../..' . '/php/WP/functions-misc.php',
+        '4d87336cb63515a2bafc3a4079e13205' => __DIR__ . '/../..' . '/php/WP/functions-settings.php',
+        '874c9b2fa8938d4f3e09a999a441a208' => __DIR__ . '/../..' . '/php/WP/functions-license.php',
+        '0669c9c4d79284bb1d15bcb2410f6f89' => __DIR__ . '/../..' . '/php/WP/functions-remote-get.php',
+        '41d8125551c5c5e9f21e1c9eea6a3315' => __DIR__ . '/../..' . '/php/WP/Admin/load-admin-files.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
-        'N' => 
+        'W' => 
         array (
-            'Nextgenthemes\\WpSettings\\' => 25,
+            'WP\\' => 3,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Nextgenthemes\\WpSettings\\' => 
+        'WP\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/src',
+            0 => __DIR__ . '/../..' . '/php/WP',
         ),
     );
 
@@ -27,9 +40,9 @@ class ComposerStaticInitdf1507af4e430c0936337e9ddce90b80
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitdf1507af4e430c0936337e9ddce90b80::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitdf1507af4e430c0936337e9ddce90b80::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitdf1507af4e430c0936337e9ddce90b80::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInite92fe7833ea66260e8a6d773607022c2::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInite92fe7833ea66260e8a6d773607022c2::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInite92fe7833ea66260e8a6d773607022c2::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { options, settings, sections, message } from "./store";
+	import { options, data, message } from "./store";
+	const { settings, sections } = data;
 	import { onMount } from 'svelte';
 	import Setting from "./Setting.svelte";
+	const { log, warn } = console;
 
 	let activeSection = 'all';
-	
+
 	function showSection( sectionKey: string ) {
 		activeSection = sectionKey;
 	}
@@ -22,13 +24,14 @@
 			const target = document.querySelector( template.dataset.ngtSvelteTarget );
 
 			if ( ! target ) {
+				warn('no target');
 				return;
 			}
 
-			if ( template.dataset.append ) {
-				target.append(template.content.cloneNode(true));
-			} else {
+			if ( template.dataset.prepend ) {
 				target.prepend(template.content.cloneNode(true));
+			} else {
+				target.append(template.content.cloneNode(true));
 			}
 		} );
 	}
@@ -72,29 +75,33 @@
 		
 				<h1 hidden={ 'all' != activeSection }>{sectionLabel}</h1>
 		
+				<div class="ngt-section__info"></div>
+
 				{#each Object.keys($options) as optionKey }
 
 					{#if settings[optionKey].tag === sectionKey}
 			
 						<Setting {optionKey} />
 
-					{/if}<!-- currect section -->
+					{/if}
 				
 				{/each}
-		
+
 			</div>
 				
 		{/each}<!-- sections -->
+
+		<!-- <p>{JSON.stringify($options, 0, 2)}</p> -->
+		
+	</div>
+
+	<div class="ngt-settings-grid__sidebar">
 
 		<p>
 			<strong>{$message}&nbsp;</strong>
 		</p>
 
-		<p>{JSON.stringify($options, 0, 2)}</p>
-		
 	</div>
-
-	<div class="ngt-settings-grid__sidebar"></div>
 </div>
 
 <style lang="scss">

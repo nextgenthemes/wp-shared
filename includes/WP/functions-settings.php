@@ -1,14 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 namespace Nextgenthemes\WP;
 
 use const Nextgenthemes\ARVE\PLUGIN_FILE;
 use Nextgenthemes\WP\Settings;
 
-function nextgenthemes_settings_instance() {
+use function Nextgenthemes\ARVE\Admin\add_action_links;
+
+function nextgenthemes_settings_instance( $plugin_file ) {
 
 	static $inst = null;
 
-	if ( null === $inst ) {
+	if ( ! $inst instanceof Settings ) {
 
 		$inst = new Settings(
 			array(
@@ -20,51 +22,15 @@ function nextgenthemes_settings_instance() {
 				),
 				'menu_title'          => esc_html__( 'NextGenThemes Settings', 'advanced-responsive-video-embedder' ),
 				'settings_page_title' => esc_html__( 'NextGenThemes Settings', 'advanced-responsive-video-embedder' ),
-				'base_url'            => plugins_url( '', PLUGIN_FILE ),
-				'base_path'           => plugin_dir_path( PLUGIN_FILE ),
+				'base_url'            => plugins_url( '', $plugin_file ),
+				'base_path'           => plugin_dir_path( $plugin_file ),
 			)
 		);
-		$inst->set_defined_product_keys();
+
+		$inst->setup_license_options();
 	}
 
 	return $inst;
-}
-
-function ngt_options() {
-	$o = nextgenthemes_settings_instance()->get_options();
-	return apply_filters( 'nextgenthemes/settings', $o );
-}
-
-function migrate_old_licenses() {
-
-	$options_ver = get_option( 'nextgenthemes_options_ver' );
-
-	if ( \version_compare( $options_ver, '9.0', '>=' ) ) {
-		return;
-	}
-
-	$products = get_products();
-	foreach ( $products as $p => $value ) {
-
-		$old_key        = get_option( "nextgenthemes_{$p}_key" );
-		$old_key_status = get_option( "nextgenthemes_{$p}_key_status" );
-
-		$new_options = get_option( 'nextgenthemes', array() );
-
-		if ( $old_key ) {
-			$options       = (array) get_option( 'nextgenthemes' );
-			$options[ $p ] = $old_key;
-			update_option( 'nextgenthemes', $options );
-		}
-
-		if ( $old_key_status ) {
-			$options                   = (array) get_option( 'nextgenthemes' );
-			$options[ $p . '_status' ] = $old_key_status;
-			update_option( 'nextgenthemes', $options );
-		}
-	}
-
-	update_option( 'nextgenthemes_options_ver', '9.0' );
 }
 
 function nextgenthemes_settings() {
@@ -79,7 +45,7 @@ function nextgenthemes_settings() {
 			// translators: %s is Product name
 			'label'   => sprintf( esc_html__( '%s license Key', 'advanced-responsive-video-embedder' ), $value['name'] ),
 			'type'    => 'string',
-			'ui'      => 'licensekey',
+			'ui'      => 'license-key',
 		);
 
 		$settings[ $p . '_status' ] = array(

@@ -23,9 +23,8 @@ function check_product_keys() {
 }
 
 function has_valid_key( $product ) {
-	$o = (array) get_option( 'nextgenthemes' );
-
-	return ( ! empty( $o[ "{$product}_status" ] ) && 'valid' === $o[ "{$product}_status" ] );
+	$options = (array) get_option( 'nextgenthemes' );
+	return ( ! empty( $options[ "{$product}_status" ] ) && 'valid' === $options[ "{$product}_status" ] );
 }
 
 function get_defined_key( $slug ) {
@@ -113,7 +112,7 @@ function api_action( $item_id, $key, $action = 'check' ) {
 	return $message;
 }
 
-function get_api_error_message( $license_data ) {
+function get_api_error_message( $license_data ): string {
 
 	if ( false !== $license_data->success ) {
 		return '';
@@ -154,6 +153,8 @@ function get_api_error_message( $license_data ) {
 			$message = __( 'An error occurred, please try again.', 'advanced-responsive-video-embedder' );
 			break;
 	}//end switch
+
+	return $message;
 }
 
 function textarea_dump( $var ) {

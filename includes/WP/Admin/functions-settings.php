@@ -1,7 +1,7 @@
 <?php
 namespace Nextgenthemes\WP\Admin;
 
-use \Nextgenthemes\WP;
+use \Nextgenthemes\WP as Common;
 
 function label_text( $option ) {
 	?>

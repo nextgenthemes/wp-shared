@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Nextgenthemes\\WpSettings\\' => array($baseDir . '/src'),
+    'WP\\' => array($baseDir . '/php/WP'),
 );

@@ -1,12 +1,22 @@
 {
-    "name": "nextgenthemes/wp-settings",
+    "name": "nextgenthemes/wp-shared",
     "type": "wp-package",
     "license": "GPL-3.0",
     "autoload": {
+        "psr-4": {
+            "WP\\": "includes/WP"
+        },
         "files": [
-            "src/WP/Asset.php",
-            "src/WP/Settings.php",
-            "src/load-admin-files.php"
+            "includes/WP/functions-asset-helpers.php",
+            "includes/WP/functions-compat.php",
+            "includes/WP/functions-deprecated.php",
+            "includes/WP/functions-array.php",
+            "includes/WP/functions-string.php",
+            "includes/WP/functions-misc.php",
+            "includes/WP/functions-settings.php",
+            "includes/WP/functions-license.php",
+            "includes/WP/functions-remote-get.php",
+            "includes/WP/Admin/load-admin-files.php"
         ]
     },
     "authors": [
@@ -15,7 +25,6 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
-        "nextgenthemes/wp-asset": "@dev"
+        "php": ">=7.2"
     }
 }

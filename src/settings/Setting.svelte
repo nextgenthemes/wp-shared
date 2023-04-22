@@ -1,18 +1,15 @@
 <script lang="ts">
-	import { options, settings, sections, restURL, nonce, message } from "./store";
+	import { options, data, message } from "./store";
+	const { settings, restUrl, nonce, definedKeys } = data;
 	import LabelText from './LabelText.svelte';
 	const { log } = console;
 
 	export let optionKey;
 	const description = settings[optionKey].description;
-	const label = settings[optionKey].label;
 	const type = settings[optionKey].type;
 	const ui = settings[optionKey].ui;
 
 	const selectOptions = settings[optionKey].options;
-
-	const premiumUrl = 'https://nextgenthemes.com/plugins/arve-' + settings[optionKey].tag;
-	const sectionLabel = sections[ settings[optionKey].tag ];
 
 	let isSaving = false;
 	let textInputTimeout;
@@ -21,10 +18,10 @@
 		if (textInputTimeout) {
 			clearTimeout(textInputTimeout)
 		}
-		textInputTimeout = setTimeout(saveOptions, 300)
+		textInputTimeout = setTimeout(saveOptions, 350)
 	}
 
-	function saveOptions( refreshAfterSave = false ) {
+	function saveOptions( refreshAfterSave: boolean = false ) {
 
 		if ( isSaving ) {
 			$message = 'trying to save too fast';
@@ -38,7 +35,7 @@
 
 		// Make a POST request to the REST API route that we registered in our PHP file
 		window.jQuery.ajax( {
-			url: restURL + '/save',
+			url: restUrl + '/save',
 			method: 'POST',
 			data: $options,
 
@@ -49,9 +46,6 @@
 
 			// callback to run upon successful completion of our request
 			success: () => {
-
-				log('success');
-
 				$message = 'Options saved';
 				setTimeout( () => ( $message = '' ), 1000 );
 			},
@@ -64,10 +58,8 @@
 
 			// when our request is complete (successful or not), reset the state to indicate we are no longer saving
 			complete: () => {
-
-				log('complete');
-
 				isSaving = false;
+
 				if ( refreshAfterSave ) {
 					refreshAfterSave = false;
 					window.location.reload();
@@ -75,6 +67,12 @@
 			},
 		} );
 	}
+
+	function licenseKeyAction( action, product ) {
+		$options['action'] = JSON.stringify( { action, product } );
+		saveOptions( true );
+	}
+
 </script>
 
 {#if 'hidden' !== ui}
@@ -83,9 +81,15 @@
 			{#if 'license-key' === ui}
 				<label>
 					<LabelText {optionKey} />
-					<input type="text" class="large-text" bind:value={$options[optionKey]} on:input={ () => { debouncedSaveOptions() }} />
 
-					Key Status: {$options[optionKey + '_key']}
+					<input disabled={ definedKeys.includes( optionKey ) } type="text" class="medium-text medium-text--license-key" bind:value={$options[optionKey]} on:input={ () => { debouncedSaveOptions() }} />
+
+					<button on:click={ () => { licenseKeyAction( 'activate', optionKey ) } } class="button button-secondary">Activate</button>
+					<button on:click={ () => { licenseKeyAction( 'deactivate', optionKey ) } } class="button button-secondary">Deactivate</button>
+
+					<div>
+						Key Status: {$options[optionKey + '_status']}
+					</div>
 				</label>
 
 			{:else if 'string' === type}
@@ -98,7 +102,7 @@
 			{:else if 'boolean' === type}
 
 				<label>
-					<input type=checkbox bind:checked={$options[optionKey]} on:change={ () => { saveOptions() }}>
+					<input type="checkbox" bind:checked={$options[optionKey]} on:change={ () => { saveOptions() }}>
 					<LabelText {optionKey} />
 				</label>
 
@@ -139,4 +143,7 @@
 {/if}
 
 <style lang="scss">
+	.medium-text--license-key {
+		width: 350px;
+	}
 </style>
