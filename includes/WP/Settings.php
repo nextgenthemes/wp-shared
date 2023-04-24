@@ -45,8 +45,8 @@ class Settings {
 
 		$args = \wp_parse_args( $args, $defaults );
 
-		$this->base_url  = $args['base_url'];
-		$this->base_path = $args['base_path'];
+		$this->base_url  = trailingslashit( $args['base_url'] );
+		$this->base_path = trailingslashit( $args['base_path'] );
 
 		$this->settings            = $args['settings'];
 		$this->sections            = $args['sections'];
@@ -209,15 +209,17 @@ class Settings {
 
 	public function assets( $page ) {
 
-		$index_css_glob = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/index-*.css' );
-		$index_js_glob  = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/index-*.js' );
+		$settings_css_glob = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.css', GLOB_NOSORT );
+		$settings_js_glob  = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.js', GLOB_NOSORT );
 
-		if ( ! empty( $index_css_glob[0] ) ) {
+		if ( ! empty( $settings_css_glob[0] ) ) {
+
 			enqueue_asset(
 				array(
 					'handle' => 'nextgenthemes-settings',
-					'src'    => trailingslashit( $this->base_url ) . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $index_css_glob[0] ),
-					'path'   => trailingslashit( $this->base_path ) . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $index_css_glob[0] ),
+					'path'   => $settings_css_glob[0],
+					'src'    => $this->base_url . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $settings_css_glob[0] ),
+					'ver'    => null, // filename is random
 				)
 			);
 		}
@@ -227,7 +229,7 @@ class Settings {
 			return;
 		}
 
-		if ( ! empty( $index_js_glob[0] ) ) {
+		if ( ! empty( $settings_js_glob[0] ) ) {
 			$settings_data = array(
 				'options'          => $this->options,
 				'home_url'         => get_home_url(),
@@ -243,10 +245,11 @@ class Settings {
 			enqueue_asset(
 				array(
 					'handle'               => 'nextgenthemes-settings',
-					'src'                  => trailingslashit( $this->base_url ) . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $index_js_glob[0] ),
-					'path'                 => trailingslashit( $this->base_path ) . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $index_js_glob[0] ),
+					'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $settings_js_glob[0] ),
+					'path'                 => $settings_js_glob[0],
 					'deps'                 => array( 'jquery' ),
 					'inline_script_before' => "var {$this->slugged_namespace} = " . \wp_json_encode( $settings_data ) . ';',
+					'ver'                  => null, // filename is random
 				)
 			);
 		}

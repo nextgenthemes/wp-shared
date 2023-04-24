@@ -6,12 +6,12 @@ function asset( array $args ) {
 	register_asset( $args );
 }
 
-function register_asset( array $args ) {
+function register_asset( array $args ): void {
 	$args['enqueue'] = false;
 	new Asset( $args );
 }
 
-function enqueue_asset( array $args ) {
+function enqueue_asset( array $args ): void {
 	$args['enqueue'] = true;
 	new Asset( $args );
 }
@@ -30,7 +30,7 @@ function add_dep_to_style( string $handle, string $dep ) {
 	return add_dep_to_asset( $asset, $dep );
 }
 
-function add_dep_to_asset( $asset, string $dep ) {
+function add_dep_to_asset( \_WP_Dependency $asset, string $dep ) {
 
 	if ( ! $asset ) {
 		return false;

@@ -95,7 +95,7 @@
 			{:else if 'string' === type}
 
 				<label>
-					<LabelText {optionKey} />
+					<LabelText {optionKey}  />
 					<input type="text" class="large-text" bind:value={$options[optionKey]} on:input={ () => { debouncedSaveOptions() }} />
 				</label>
 
@@ -128,7 +128,7 @@
 
 			{:else}
 
-				<h3>Error: {type} not implemented</h3>
+				<h3>Error: type {type} not implemented</h3>
 
 			{/if}
 

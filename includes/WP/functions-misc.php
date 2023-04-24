@@ -13,7 +13,7 @@ function ngt_get_block_wrapper_attributes( array $attr ) {
 		}
 	}
 
-	return ' ' . get_block_wrapper_attributes( $attr );
+	return ' ' . \get_block_wrapper_attributes( $attr );
 }
 
 function attr( array $attr = array() ) {
@@ -49,7 +49,7 @@ function attr( array $attr = array() ) {
 
 function get_url_arg( $url, $arg ) {
 
-	$parsed_url = wp_parse_url( $url );
+	$parsed_url = \wp_parse_url( $url );
 
 	if ( ! empty( $parsed_url['query'] ) ) {
 
@@ -71,7 +71,7 @@ function get_var_dump( $var ) {
 };
 
 // this is to prevent constant() throwing as Error in PHP 8, E_WARNING in PHP < 8
-function get_constant( $const_name ) {
+function get_constant( string $const_name ) {
 	return defined( $const_name ) ? constant( $const_name ) : false;
 }
 
@@ -84,4 +84,38 @@ function replace_extension( $filename, $new_extension ) {
 	$dir  = $info['dirname'] ? $info['dirname'] . DIRECTORY_SEPARATOR : '';
 
 	return $dir . $info['filename'] . '.' . $new_extension;
+}
+
+/**
+ * Check if Gutenberg is enabled.
+ * Must be used not earlier than plugins_loaded action fired.
+ *
+ * @return bool
+ */
+function is_gutenberg(): bool {
+
+	$gutenberg    = false;
+	$block_editor = false;
+
+	if ( has_filter( 'replace_editor', 'gutenberg_init' ) ) {
+		// Gutenberg is installed and activated.
+		$gutenberg = true;
+	}
+
+	if ( version_compare( $GLOBALS['wp_version'], '5.0-beta', '>' ) ) {
+		// Block editor.
+		$block_editor = true;
+	}
+
+	if ( ! $gutenberg && ! $block_editor ) {
+		return false;
+	}
+
+	if ( ! class_exists( 'Classic_Editor' ) ) {
+		return true;
+	}
+
+	$use_block_editor = ( get_option( 'classic-editor-replace' ) === 'no-replace' );
+
+	return $use_block_editor;
 }

@@ -228,7 +228,7 @@ class Asset {
 
 		if ( ! is_string($script) ) {
 			// dash-ed-string to CamelCaseString
-			$js_var_name = str_replace(' - ', '', ucwords("{$handle}-js-{$position}", ' - '));
+			$js_var_name = str_replace('-', '', ucwords("{$handle}-js-{$position}", '-'));
 
 			return "var $js_var_name = " . \wp_json_encode( $script ) . ';';
 		}
