@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { options, data, message } from "./store";
-	const { settings, restUrl, nonce, definedKeys } = data;
-	import LabelText from './LabelText.svelte';
+	const { settings, sections, premiumSections, premiumUrlPrefix, restUrl, nonce, definedKeys } = data;
+	import LabelText from '../shared/LabelText.svelte';
 	const { log } = console;
-
-	export let optionKey;
-	const description = settings[optionKey].description;
-	const type = settings[optionKey].type;
-	const ui = settings[optionKey].ui;
+	export let optionKey: string;
+	const setting = settings[optionKey];
+	const { description, type, ui, tag } = setting;
+	const sectionLabel = sections[ tag ];
 
 	const selectOptions = settings[optionKey].options;
 
@@ -80,6 +79,8 @@
 		<p>
 			{#if 'license-key' === ui}
 				<label>
+					<LabelText {setting} {sectionLabel} {premiumSections} {premiumUrlPrefix} />
+
 					<LabelText {optionKey} />
 
 					<input disabled={ definedKeys.includes( optionKey ) } type="text" class="medium-text medium-text--license-key" bind:value={$options[optionKey]} on:input={ () => { debouncedSaveOptions() }} />

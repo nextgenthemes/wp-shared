@@ -1,12 +1,13 @@
 interface InlineJs {
-	settings: Record< string, OptionProps >;
-	sections: Record< string, string >;
 	options: Record< string, number | string | boolean >;
 	premiumSections: string[];
 	premiumUrlPrefix: string;
+	sections: Record< string, string >;
+	settings: Record< string, OptionProps >;
 }
 
 interface InlineJsSettingsPage extends InlineJs {
+	home_url: string;
 	nonce: string;
 	restUrl: string;
 	definedKeys: string[];
@@ -29,4 +30,5 @@ interface OptionProps {
 	placeholder?: string;
 	options?: Record< string, string >;
 	ui?: string;
+	option: boolean;
 }

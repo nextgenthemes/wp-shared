@@ -43,6 +43,7 @@
 	}
 
 	function uploadImage( optionKey ) {
+
 		const image = window.wp
 			.media( {
 				title: 'Upload Image',
@@ -61,7 +62,7 @@
 	$: $options['url'] = processUrl($options['url']);
 </script>
 
-<button on:click={() => (showModal = true)}
+<button type="button" on:click|preventDefault={() => (showModal = true)}
 	id="arve-btn"
 	class="arve-btn button add_media"
 	title="ARVE Advanced Responsive Video Embedder"
@@ -73,31 +74,21 @@
 	
 	<div class="inputs">
 
-		<button class="btn-help" on:click={ () => { displayHelp = !displayHelp } }>
-			Help
-		</button>
-
-		{#each Object.entries(sections) as [ sectionKey, sectionLabel ] }
+		<div class="help-wrap">
+			<button class="button-secondary button-secondary--help" on:click|preventDefault={ () => { displayHelp = !displayHelp } }>
+				Help
+			</button>
+		</div>
 		
-			<div class="ngt-section ngt-section--{sectionKey}">
+		<div class="option-grid">
+
+			{#each Object.keys($options) as optionKey }
 		
-				<h1>{sectionLabel}</h1>
-		
-				<div class="ngt-section__info"></div>
+				<Setting {optionKey} {showModal} {displayHelp} />
 
-				{#each Object.keys($options) as optionKey }
+			{/each}
 
-					{#if settings[optionKey].tag === sectionKey}
-			
-						<Setting {optionKey} {displayHelp} />
-
-					{/if}
-				
-				{/each}
-
-			</div>
-
-		{/each}<!-- sections -->
+		</div>
 
 		<!-- <p>{JSON.stringify($options, 0, 2)}</p> -->
 	</div>
@@ -116,20 +107,26 @@
 
 <style lang="scss">
 
-	.btn-help {
-		position: absolute;
-		right: 5px;
-		top: 5px;
+	.arve-btn {
+		padding-left: 3px;
+	}
+
+	.help-wrap {
+		text-align: end;
 	}
 
 	.inputs {
+		container-type: inline-size;
+		padding-left: 10px;
+		padding-right: 10px;
+		overflow-x: hidden;
 		overflow-y: auto;
 		position: relative;
 		background:
 			/* Shadow covers */
 			linear-gradient(white 30%, rgba(255,255,255,0)),
 			linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
-			
+
 			/* Shadows */
 			radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
 			radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
@@ -137,22 +134,29 @@
 			/* Shadow covers */
 			linear-gradient(white 30%, rgba(255,255,255,0)),
 			linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
-			
+
 			/* Shadows */
 			radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
 			radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
 		background-repeat: no-repeat;
 		background-color: white;
 		background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
-		
+
 		/* Opera doesn't support this in the shorthand */
 		background-attachment: local, local, scroll, scroll;
 	}
 
+	@container (min-width: 700px) {
+		.option-grid {
+			display: grid;
+			grid-template-columns: minmax(0,50%) minmax(0,50%);
+			column-gap: .5em;
+		}
+	}
+
 	.shortcode-preview {
+		margin: 10px;
 		font-family: monospace;
-		padding-top: 1rem;
-		padding-bottom: 1rem;
 	}
 
 	[hidden] {

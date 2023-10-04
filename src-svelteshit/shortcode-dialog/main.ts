@@ -1,3 +1,6 @@
+// Import our custom CSS
+import '../shared/bootstrap-forms.scss';
+
 import App from './App.svelte';
 
 const app = new App( {

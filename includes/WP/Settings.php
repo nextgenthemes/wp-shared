@@ -3,6 +3,9 @@ namespace Nextgenthemes\WP;
 
 use Exception;
 
+use function Nextgenthemes\ARVE\Admin\get_first_glob;
+use function Nextgenthemes\WP\Admin\print_settings_blocks;
+
 class Settings {
 	private static $no_reset_sections = array( 'debug', 'random-video', 'keys' );
 
@@ -23,9 +26,9 @@ class Settings {
 	private array $settings;
 	private array $defined_keys = array();
 
-	public function __construct( $args ) {
+	public function __construct( array $args ) {
 
-		$optional_args = [ 'menu_parent_slug', 'sections', 'premium_sections' ];
+		$optional_args = [ 'menu_parent_slug', 'sections', 'premium_sections', 'premium_url_prefix' ];
 
 		foreach ( $optional_args as $optional_arg ) {
 
@@ -34,30 +37,16 @@ class Settings {
 			}
 		}
 
-		$defaults = array(
-			'menu_parent_slug'    => 'options-general.php',
-			'sections'            => array( 'main' => 'Main' ),
-			'premium_sections'    => array(),
-			'settings_page_title' => 'Default Page Title',
-			'default_menu_title'  => 'Default Menu Title',
-			'premium_url_prefix'  => '',
-		);
-
-		$args = \wp_parse_args( $args, $defaults );
-
 		$this->base_url  = trailingslashit( $args['base_url'] );
 		$this->base_path = trailingslashit( $args['base_path'] );
 
 		$this->settings            = $args['settings'];
 		$this->sections            = $args['sections'];
-		$this->premium_sections    = $args['premium_sections'];
-		$this->premium_url_prefix  = $args['premium_url_prefix'];
 		$this->menu_title          = $args['menu_title'];
 		$this->settings_page_title = $args['settings_page_title'];
 		$this->slugged_namespace   = \sanitize_key( str_replace( '\\', '_', $args['namespace'] ) );
 		$this->slashed_namespace   = str_replace( '_', '/', $this->slugged_namespace );
 		$this->rest_namespace      = $this->slugged_namespace . '/v1';
-		$this->menu_parent_slug    = $args['menu_parent_slug'];
 
 		$this->set_namespaces( $args['namespace'] );
 		$this->set_default_options();
@@ -70,23 +59,23 @@ class Settings {
 		add_action( 'admin_menu', array( $this, 'register_setting_page' ) );
 	}
 
-	public function setup_license_options() {
+	public function setup_license_options(): void {
 		$this->set_defined_product_keys();
 		add_action( 'admin_init', [ $this, 'action_admin_init' ], 0 );
 	}
 
-	public function action_admin_init() {
+	public function action_admin_init(): void {
 		Admin\activation_notices();
 		Admin\init_edd_updaters( $this->options );
 	}
 
-	private function set_namespaces( string $namespace ) {
+	private function set_namespaces( string $namespace ): void {
 		$this->slugged_namespace = sanitize_key( str_replace( '\\', '_', $namespace ) );
 		$this->slashed_namespace = str_replace( '_', '/', $this->slugged_namespace );
 		$this->rest_namespace    = $this->slugged_namespace . '/v1';
 	}
 
-	private function set_default_options() {
+	private function set_default_options(): void {
 
 		foreach ( $this->settings as $key => $value ) {
 
@@ -114,7 +103,7 @@ class Settings {
 		return $setting_props['type'];
 	}
 
-	public static function has_bool_default_options( array $array ) {
+	public static function has_bool_default_options( array $array ): bool {
 
 		return ! array_diff_key(
 			$array,
@@ -126,7 +115,10 @@ class Settings {
 		);
 	}
 
-	public function __set( $name, $value ) {
+	/**
+	 * @param mixed $value
+	 */
+	public function __set( string $name, $value ): void {
 
 		if ( ! property_exists( __CLASS__, $name ) ) {
 			throw new Exception( "Trying to set property '$name', but it does not exits" );
@@ -135,15 +127,15 @@ class Settings {
 		$this->$name = $value;
 	}
 
-	public function add_edd_updaters() {
+	public function add_edd_updaters(): void {
 		add_action( 'admin_init', [ $this, 'action_edd_updaters' ], 0 );
 	}
 
-	public function action_edd_updaters() {
+	public function action_edd_updaters(): void {
 		Admin\init_edd_updaters( $this->options );
 	}
 
-	public function set_defined_product_keys() {
+	public function set_defined_product_keys(): void {
 
 		$products = get_products();
 		foreach ( $products as $p => $value ) {
@@ -155,17 +147,17 @@ class Settings {
 		}
 	}
 
-	public function get_options() {
+	public function get_options(): array {
 		$options = (array) get_option( $this->slugged_namespace, array() );
 		$options = $options + $this->options_defaults;
 		return $options;
 	}
 
-	public function get_options_defaults() {
+	public function get_options_defaults(): array {
 		return $this->options_defaults;
 	}
 
-	public function save_options( $options ) {
+	public function save_options( array $options ): void {
 
 		if ( 'nextgenthemes' === $this->slugged_namespace ) {
 
@@ -188,7 +180,7 @@ class Settings {
 		update_option( $this->slugged_namespace, $options );
 	}
 
-	public function register_rest_route() {
+	public function register_rest_route(): void {
 
 		register_rest_route(
 			$this->rest_namespace,
@@ -199,7 +191,7 @@ class Settings {
 				'permission_callback' => function() {
 					return current_user_can( 'manage_options' );
 				},
-				'callback'            => function( \WP_REST_Request $request ) {
+				'callback'            => function( \WP_REST_Request $request ): void {
 					$this->save_options( $request->get_params() );
 					die( '1' );
 				},
@@ -207,55 +199,62 @@ class Settings {
 		);
 	}
 
-	public function assets( $page ) {
-
-		$settings_css_glob = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.css', GLOB_NOSORT );
-		$settings_js_glob  = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.js', GLOB_NOSORT );
-
-		if ( ! empty( $settings_css_glob[0] ) ) {
-
-			enqueue_asset(
-				array(
-					'handle' => 'nextgenthemes-settings',
-					'path'   => $settings_css_glob[0],
-					'src'    => $this->base_url . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $settings_css_glob[0] ),
-					'ver'    => null, // filename is random
-				)
-			);
-		}
+	public function assets( string $page ): void {
 
 		// Check if we are currently viewing our setting page
 		if ( ! str_ends_with( $page, $this->slugged_namespace ) ) {
 			return;
 		}
 
-		if ( ! empty( $settings_js_glob[0] ) ) {
-			$settings_data = array(
-				'options'          => $this->options,
-				'home_url'         => get_home_url(),
-				'restUrl'          => esc_url( get_rest_url( null, $this->rest_namespace ) ),
-				'nonce'            => wp_create_nonce( 'wp_rest' ),
-				'settings'         => $this->settings,
-				'sections'         => $this->sections,
-				'premiumSections'  => $this->premium_sections,
-				'premiumUrlPrefix' => $this->premium_url_prefix,
-				'definedKeys'      => $this->defined_keys,
-			);
+		$settings_css_path = get_first_glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.css' );
+		$settings_js_path  = get_first_glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.js' );
 
-			enqueue_asset(
-				array(
-					'handle'               => 'nextgenthemes-settings',
-					'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $settings_js_glob[0] ),
-					'path'                 => $settings_js_glob[0],
-					'deps'                 => array( 'jquery' ),
-					'inline_script_before' => "var {$this->slugged_namespace} = " . \wp_json_encode( $settings_data ) . ';',
-					'ver'                  => null, // filename is random
-				)
-			);
+		if ( ! $settings_css_path || ! $settings_js_path ) {
+			trigger_error( 'Could not find file in path', E_USER_WARNING );
 		}
+
+		enqueue_asset(
+			array(
+				'handle' => 'nextgenthemes-settings',
+				'src'    => $this->base_url . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $settings_css_path ),
+				'path'   => $settings_css_path,
+			)
+		);
+
+		$settings_data = array(
+			'options'          => $this->options,
+			'home_url'         => get_home_url(),
+			'restUrl'          => esc_url( get_rest_url( null, $this->rest_namespace ) ),
+			'nonce'            => wp_create_nonce( 'wp_rest' ),
+			'settings'         => $this->settings,
+			'sections'         => $this->sections,
+			'premiumSections'  => $this->premium_sections,
+			'premiumUrlPrefix' => $this->premium_url_prefix,
+			'definedKeys'      => $this->defined_keys,
+		);
+
+		enqueue_asset(
+			array(
+				'handle'               => 'alpinejs',
+				'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/alpine.js',
+				'path'                 => __DIR__ . '/alpine.js',
+				'defer'                => true,
+			)
+		);
+
+		enqueue_asset(
+			array(
+				'handle'               => 'nextgenthemes-settings',
+				'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/settings.js',
+				'path'                 => __DIR__ . '/settings.js',
+				'deps'                 => array( 'alpinejs', 'jquery' ),
+				'defer'                => true,
+				'inline_script_before' => "var {$this->slugged_namespace} = " . \wp_json_encode( $settings_data ) . ';',
+			)
+		);
 	}
 
-	private function get_index_js_filename() {
+	private function get_index_js_filename(): void {
 
 		$index_js_glob  = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/index-*.js' );
 		$index_css_glob = glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/index-*.css' );
@@ -265,7 +264,7 @@ class Settings {
 		}
 	}
 
-	private function print_settings_tabs() {
+	private function print_settings_tabs(): void {
 		?>
 		<h2 class="nav-tab-wrapper">
 			<a @click='showAllSectionsButDebug()'
@@ -284,7 +283,7 @@ class Settings {
 		<?php
 	}
 
-	public function print_save_section() {
+	public function print_save_section(): void {
 		?>
 		<p v-show="onlySectionDisplayed !== 'debug'">
 			<button @click='saveOptions'
@@ -301,7 +300,7 @@ class Settings {
 			<?php
 	}
 
-	private function print_paid_section_message() {
+	private function print_paid_section_message(): void {
 
 		if ( empty( $this->premium_sections ) ) {
 			return;
@@ -320,7 +319,7 @@ class Settings {
 			<?php
 	}
 
-	private function print_reset_bottons() {
+	private function print_reset_bottons(): void {
 		?>
 		<p>
 		<?php
@@ -350,18 +349,99 @@ class Settings {
 		<?php
 	}
 
-	public function print_admin_page() {
+	public function print_admin_page(): void {
 
 		wp_enqueue_media();
 		?>
-		<div class="wrap wrap--nextgenthemes">
+		<div class="wrap wrap--nextgenthemes" x-data="{ tab: 'all' }">
 			<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
 
-			<div id="ngt-settings-svelte"></div>
+			<h2 class="nav-tab-wrapper" >
+				<button class="nav-tab">
+					<span x-text="tab"></span>
+				</button>
 
-			<?php
-			do_action( $this->slashed_namespace . '/admin/settings/content', $this );
-			?>
+				<div x-data='<?php echo wp_json_encode( [ 'sections' => $this->sections ], JSON_PRETTY_PRINT, JSON_HEX_APOS ); ?>'>
+					<template x-for="[id, value] in Object.entries(sections)">
+						<button class="nav-tab" :class="id === tab ? 'nav-tab-active' : ''" x-on:click="tab = id">
+							<span x-text="value"></span>
+						</button>
+					</template>
+				</div>
+			</h2>
+
+			<div x-data="ngtsettings" >
+				<div hidden x-text="JSON.stringify(options)"></div>
+				<div x-text="message"></div>
+
+				<button @click="click()">Say Hello</button><br>
+				<button @click="saveOptions()">Save</button>
+
+				<?php print_settings_blocks($this->settings, $this->sections, $this->premium_sections, 'settings-page'); ?>
+			</div>
+
+			<script>
+				document.addEventListener('alpine:init', () => {
+					Alpine.data('ngtsettings', () => ({
+						options: <?php echo wp_json_encode( $this->options, JSON_PRETTY_PRINT ); ?>,
+						message: '',
+						isSaving: false,
+						click() {
+							console.log(this.options);
+						},
+						saveOptions( refreshAfterSave = false ) {
+
+							if ( this.isSaving ) {
+								this.message = 'trying to save too fast';
+								return;
+							}
+
+							// set the state so that another save cannot happen while processing
+							this.isSaving = true;
+							this.message = 'Saving...';
+
+							// Make a POST request to the REST API route that we registered in our PHP file
+							window.jQuery.ajax( {
+								url: restUrl + '/save',
+								method: 'POST',
+								data: this.options,
+
+								// set the nonce in the request header
+								beforeSend( request ) {
+									request.setRequestHeader( 'X-WP-Nonce', nonce );
+								},
+
+								// callback to run upon successful completion of our request
+								success: () => {
+									this.message = 'Options saved';
+									setTimeout( () => ( this.message = '' ), 1000 );
+								},
+
+								// callback to run if our request caused an error
+								error: ( errorData ) => {
+									this.message = errorData.responseText;
+									refreshAfterSave = false;
+								},
+
+								// when our request is complete (successful or not), reset the state to indicate we are no longer saving
+								complete: () => {
+									this.isSaving = false;
+
+									if ( refreshAfterSave ) {
+										refreshAfterSave = false;
+										window.location.reload();
+									}
+								},
+							} );
+						}
+					}))
+				})
+
+				function licenseKeyAction( action, product ) {
+					$options['action'] = JSON.stringify( { action, product } );
+					saveOptions( true );
+				}
+			</script>
 
 			<?php
 			/*
@@ -373,11 +453,11 @@ class Settings {
 			$this->print_reset_bottons();
 			*/
 			?>
-		</div>
+			</div>
 			<?php
 	}
 
-	public function register_setting_page() {
+	public function register_setting_page(): void {
 
 		$parent_slug = $this->menu_parent_slug;
 		// The HTML Document title for our settings page.

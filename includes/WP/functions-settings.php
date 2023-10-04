@@ -6,7 +6,10 @@ use Nextgenthemes\WP\Settings;
 
 use function Nextgenthemes\ARVE\Admin\add_action_links;
 
-function nextgenthemes_settings_instance( $plugin_file ) {
+/**
+ * @return mixed
+ */
+function nextgenthemes_settings_instance( string $plugin_file ) {
 
 	static $inst = null;
 
@@ -33,7 +36,7 @@ function nextgenthemes_settings_instance( $plugin_file ) {
 	return $inst;
 }
 
-function nextgenthemes_settings() {
+function nextgenthemes_settings(): array {
 
 	$products = get_products();
 

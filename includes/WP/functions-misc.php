@@ -1,7 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 namespace Nextgenthemes\WP;
 
-function ngt_get_block_wrapper_attributes( array $attr ) {
+/**
+ * @param array <string, string> $attr
+ */
+function ngt_get_block_wrapper_attributes( array $attr ): string {
 
 	foreach ( $attr as $key => $value ) {
 
@@ -16,7 +19,10 @@ function ngt_get_block_wrapper_attributes( array $attr ) {
 	return ' ' . \get_block_wrapper_attributes( $attr );
 }
 
-function attr( array $attr = array() ) {
+/**
+ * @param array <string, mixed> $attr
+ */
+function attr( array $attr = array() ): string {
 
 	$html = '';
 
@@ -47,7 +53,10 @@ function attr( array $attr = array() ) {
 	return $html;
 }
 
-function get_url_arg( $url, $arg ) {
+/**
+ * @return mixed
+ */
+function get_url_arg( string $url, string $arg ) {
 
 	$parsed_url = \wp_parse_url( $url );
 
@@ -63,6 +72,11 @@ function get_url_arg( $url, $arg ) {
 	return false;
 }
 
+/**
+ * @param mixed $var
+ *
+ * @return string|false
+ */
 function get_var_dump( $var ) {
 	ob_start();
 	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_dump
@@ -70,52 +84,22 @@ function get_var_dump( $var ) {
 	return ob_get_clean();
 };
 
-// this is to prevent constant() throwing as Error in PHP 8, E_WARNING in PHP < 8
+/**
+ * This is to prevent constant() throwing as Error in PHP 8, E_WARNING in PHP < 8
+ *
+ * @return mixed
+ */
 function get_constant( string $const_name ) {
 	return defined( $const_name ) ? constant( $const_name ) : false;
 }
 
-function is_wp_debug() {
+function is_wp_debug(): bool {
 	return defined( 'WP_DEBUG' ) && WP_DEBUG;
 }
 
-function replace_extension( $filename, $new_extension ) {
+function replace_extension( string $filename, string $new_extension ): string {
 	$info = pathinfo( $filename );
 	$dir  = $info['dirname'] ? $info['dirname'] . DIRECTORY_SEPARATOR : '';
 
 	return $dir . $info['filename'] . '.' . $new_extension;
-}
-
-/**
- * Check if Gutenberg is enabled.
- * Must be used not earlier than plugins_loaded action fired.
- *
- * @return bool
- */
-function is_gutenberg(): bool {
-
-	$gutenberg    = false;
-	$block_editor = false;
-
-	if ( has_filter( 'replace_editor', 'gutenberg_init' ) ) {
-		// Gutenberg is installed and activated.
-		$gutenberg = true;
-	}
-
-	if ( version_compare( $GLOBALS['wp_version'], '5.0-beta', '>' ) ) {
-		// Block editor.
-		$block_editor = true;
-	}
-
-	if ( ! $gutenberg && ! $block_editor ) {
-		return false;
-	}
-
-	if ( ! class_exists( 'Classic_Editor' ) ) {
-		return true;
-	}
-
-	$use_block_editor = ( get_option( 'classic-editor-replace' ) === 'no-replace' );
-
-	return $use_block_editor;
 }

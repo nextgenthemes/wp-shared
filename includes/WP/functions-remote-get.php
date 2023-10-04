@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 namespace Nextgenthemes\WP;
 
 // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralDomain
-function remote_get_json( string $url, array $args = array(), $json_name = false, $time = DAY_IN_SECONDS ) {
+function remote_get_json( string $url, array $args = array(), string $json_name = '', int $time = DAY_IN_SECONDS ) {
 	return remote_get_json_cached( $url, $args, $json_name, $time );
 }
 
-function remote_get_json_cached( string $url, array $args = array(), $json_name = false, $time = DAY_IN_SECONDS ) {
+function remote_get_json_cached( string $url, array $args = array(), string $json_name = '', int $time = DAY_IN_SECONDS ) {
 
 	$response = remote_get_body_cached( $url, $args, $time );
 
@@ -85,7 +85,10 @@ function remote_get_body( string $url, array $args = array() ) {
 	return $response;
 };
 
-function remote_get_body_cached( string $url, array $args = array(), $time = DAY_IN_SECONDS ) {
+/**
+ * @return mixed
+ */
+function remote_get_body_cached( string $url, array $args = array(), int $time = DAY_IN_SECONDS ) {
 
 	$transient_name = 'nextgenthemes_remote_get_body_' . $url . wp_json_encode( $args );
 	$response       = get_transient( $transient_name );
@@ -99,7 +102,10 @@ function remote_get_body_cached( string $url, array $args = array(), $time = DAY
 	return $response;
 }
 
-function get_image_size( $img_url ) {
+/**
+ * @return array|false
+ */
+function get_image_size( string $img_url ) {
 	$response = remote_get_body( $img_url, [ 'timeout' => 0.5 ] );
 
 	if ( is_wp_error( $response ) ) {

@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'WP\\' => array($baseDir . '/php/WP'),
+    'WP\\' => array($baseDir . '/includes/WP'),
 );

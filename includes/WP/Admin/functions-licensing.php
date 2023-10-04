@@ -1,13 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 namespace Nextgenthemes\WP\Admin;
 
 use \Nextgenthemes\WP\Admin\EDD\PluginUpdater;
 use \Nextgenthemes\WP\Admin\EDD\ThemeUpdater;
-use \Nextgenthemes\WP as Common;
 
 use function \Nextgenthemes\WP\get_products;
 
-function init_edd_updaters( array $options ) {
+function init_edd_updaters( array $options ): void {
 
 	$products = get_products();
 
@@ -82,9 +81,9 @@ function init_theme_updater( array $product, array $options ): void {
 }
 
 // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralDomain
-function activation_notices() {
+function activation_notices(): void {
 
-	$products = Common\get_products();
+	$products = get_products();
 
 	foreach ( $products as $key => $value ) :
 

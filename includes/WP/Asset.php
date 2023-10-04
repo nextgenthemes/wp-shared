@@ -3,34 +3,24 @@ namespace Nextgenthemes\WP;
 
 use Exception;
 
-add_filter( 'script_loader_tag', __NAMESPACE__ . '\\Asset::maybe_add_async_or_defer', 10, 2 );
+add_filter( 'script_loader_tag', __NAMESPACE__ . '\\Asset::add_attributes', 10, 2 );
 
 class Asset {
 
 	// See wp_register_script / wp_register_styles
-	private $handle    = '';
-	private $src       = '';
-	private $deps      = array();
-	private $media     = 'all';
-	private $ver       = false;
-	private $in_footer = true;
+	private string $handle   = '';
+	private string $src      = '';
+	private array $deps      = array();
+	private string $media    = 'all';
+	private string $strategy = '';
 
-	/**
-	 * @var bool async attribute on script
-	 */
-	private $async = false;
+	private $ver            = false;
+	private bool $in_footer = true;
 
-	/**
-	 * @var bool defer attribute on script
-	 */
-	private $defer = false;
-
-	/**
-	 * If the script should be enqueue after being registered
-	 *
-	 * @var bool
-	 */
-	private $enqueue = false;
+	private bool $async   = false;
+	private bool $defer   = false;
+	private bool $module  = false;
+	private bool $enqueue = false;
 
 	/**
 	 * String of JavaScript code.
@@ -55,7 +45,7 @@ class Asset {
 	 *
 	 * @var string CSS
 	 */
-	private $inline_style = '';
+	private string $inline_style = '';
 
 	/**
 	 * @todo
@@ -68,14 +58,14 @@ class Asset {
 	 *
 	 * @var bool
 	 */
-	private $mce = false;
+	private bool $mce = false;
 
 	/**
 	 * Absolute path to the asset
 	 *
 	 * @var string
 	 */
-	private $path = '';
+	private string $path = '';
 
 	public function __construct( array $args ) {
 
@@ -108,6 +98,13 @@ class Asset {
 		$this->run();
 	}
 
+	/**
+	 * Undocumented function
+	 *
+	 * @param mixed $inline_script
+	 *
+	 * @return mixed
+	 */
 	private function validate_inline_script( $inline_script ) {
 		if ( ! is_string( $inline_script ) &&
 			! is_array( $inline_script )
@@ -117,6 +114,11 @@ class Asset {
 		return $inline_script;
 	}
 
+	/**
+	 * @param mixed $ver
+	 *
+	 * @return mixed
+	 */
 	private function validate_ver( $ver ) {
 		if ( null !== $ver &&
 			false !== $ver &&
@@ -127,7 +129,7 @@ class Asset {
 		return $ver;
 	}
 
-	private function run() {
+	private function run(): void {
 
 		$deps_and_ver = static::deps_and_ver( $this->path );
 
@@ -139,7 +141,22 @@ class Asset {
 
 			$this->deps = $this->deps + $deps_and_ver['dependencies'];
 
-			wp_register_script( $this->handle, $this->src, $this->deps, $this->ver, $this->in_footer );
+			if ( version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+				wp_register_script(
+					$this->handle,
+					$this->src,
+					$this->deps,
+					$this->ver,
+					array(
+						'strategy'  => $this->strategy,
+						'in_footer' => $this->in_footer,
+					)
+				);
+			} else {
+				wp_register_script( $this->handle, $this->src, $this->deps, $this->ver, $this->in_footer );
+			}
+
+			wp_script_add_data( $this->handle, 'strategy', $this->strategy );
 
 			if ( $this->inline_script_before ) {
 				wp_add_inline_script(
@@ -161,6 +178,10 @@ class Asset {
 				wp_script_add_data( $this->handle, 'sync', true );
 			} elseif ( $this->defer ) {
 				wp_script_add_data( $this->handle, 'defer', true );
+			}
+
+			if ( $this->module ) {
+				wp_script_add_data( $this->handle, 'module', true );
 			}
 
 			if ( $this->enqueue ) {
@@ -192,7 +213,7 @@ class Asset {
 		}//end if
 	}
 
-	public static function is_script( string $src ) {
+	public static function is_script( string $src ): bool {
 		$src_without_query = strtok( $src, '?' );
 		return '.js' === substr( $src_without_query, -3 ) ? true : false;
 	}
@@ -224,6 +245,9 @@ class Asset {
 		return $dv;
 	}
 
+	/**
+	 * @param mixed $script
+	 */
 	public static function inline_script( $script, string $handle, string $position ): string {
 
 		if ( ! is_string($script) ) {
@@ -236,7 +260,7 @@ class Asset {
 		return $script;
 	}
 
-	public static function add_dep_to_asset( $asset, $dep ) {
+	public static function add_dep_to_asset( $asset, string $dep ): bool {
 
 		if ( ! $asset ) {
 			return false;
@@ -250,7 +274,7 @@ class Asset {
 	}
 
 	/**
-	 * Adds async/defer attributes to enqueued / registered scripts.
+	 * Adds async/defer/type="module" attributes to enqueued / registered scripts.
 	 *
 	 * If #12009 lands in WordPress, this function can no-op since it would be handled in core.
 	 *
@@ -259,9 +283,10 @@ class Asset {
 	 *
 	 * @param string $tag    The script tag.
 	 * @param string $handle The script handle.
+	 *
 	 * @return string Script HTML string.
 	 */
-	public static function maybe_add_async_or_defer( $tag, $handle ) {
+	public static function add_attributes( string $tag, string $handle ): string {
 		foreach ( array( 'async', 'defer' ) as $attr ) {
 			if ( ! wp_scripts()->get_data( $handle, $attr ) ) {
 				continue;
@@ -272,6 +297,13 @@ class Asset {
 			}
 			// Only allow async or defer, not both.
 			break;
+		}
+
+		if ( wp_scripts()->get_data( $handle, 'module' ) ) {
+			// Prevent adding attribute when already added in #12009.
+			if ( ! preg_match( ':\stype(=|>|\s):', $tag ) ) {
+				$tag = preg_replace( ':(?=></script>):', ' type="module"', $tag, 1 );
+			}
 		}
 
 		return $tag;

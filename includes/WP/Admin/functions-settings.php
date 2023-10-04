@@ -1,9 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 namespace Nextgenthemes\WP\Admin;
 
-use \Nextgenthemes\WP as Common;
+use function \Nextgenthemes\WP\attr;
+use function \Nextgenthemes\WP\get_defined_key;
+use function \Nextgenthemes\WP\has_valid_key;
 
-function label_text( $option ) {
+function label_text( array $option ): void {
 	?>
 	<span class="nextgenthemes-label-text">
 		<?php
@@ -29,31 +31,30 @@ function label_text( $option ) {
 	<?php
 }
 
-function print_boolean_field( $key, $option ) {
+function print_boolean_field( string $key, array $option ): void {
 	?>
 	<p>
 		<label>
 			<input
 				type="checkbox"
-				v-model="<?php echo esc_attr( "vm.$key" ); ?>"
-				name="<?php echo esc_attr( "vm.$key" ); ?>"
+				x-model="<?php echo esc_attr( "options.$key" ); ?>"
 			>
-			{{ vm.$key }} <?php label_text( $option ); ?>
+			<?php label_text( $option ); ?> -- <span x-text="<?php echo esc_attr( "options.$key" ); ?>"></span>
 		</label>
 	</p>
 	<?php
 }
 
-function print_boolean_radio_field( $key, $option ) {
+function print_boolean_radio_field( string $key, array $option ): void {
 	?>
 	<p>
 		<?php label_text( $option ); ?>
 		<label>
 			<input
 				type="radio"
-				v-model="<?php echo esc_attr( "vm.$key" ); ?>"
+				x-model="<?php echo esc_attr( "options.$key" ); ?>"
 				v-bind:value="true"
-				name="<?php echo esc_attr( "vm.$key" ); ?>"
+				name="<?php echo esc_attr( "options.$key" ); ?>"
 			>
 			Yes
 		</label>
@@ -61,9 +62,9 @@ function print_boolean_radio_field( $key, $option ) {
 		<label>
 			<input
 				type="radio"
-				v-model="<?php echo esc_attr( "vm.$key" ); ?>"
+				x-model="<?php echo esc_attr( "options.$key" ); ?>"
 				v-bind:value="false"
-				name="<?php echo esc_attr( "vm.$key" ); ?>"
+				name="<?php echo esc_attr( "options.$key" ); ?>"
 			>
 			No
 		</label>
@@ -71,42 +72,43 @@ function print_boolean_radio_field( $key, $option ) {
 	<?php
 }
 
-function print_string_field( $key, $option ) {
+function print_string_field( string $key, array $option ): void {
 	?>
 	<p>
 		<label>
 			<?php label_text( $option ); ?>
 			<input
-				v-model="<?php echo esc_attr( "vm.$key" ); ?>"
+				x-model.debounce="<?php echo esc_attr( "options.$key" ); ?>"
 				type="text"
 				class="large-text"
 				placeholder="<?php echo esc_attr( $option['placeholder'] ); ?>"
 			/>
+			<span x-text="<?php echo esc_attr( "options.$key" ); ?>"></span>
 		</label>
 	</p>
 	<?php
 }
 
-function print_hidden_field( $key, $option ) {} // yes we need this nothing function
+function print_hidden_field( string $key, array $option ): void {} // yes we need this nothing function
 
-function print_old_hidden_field( $key, $option ) {
+function print_old_hidden_field( string $key, array $option ): void {
 	?>
-	<input v-model="<?php echo esc_attr( "vm.$key" ); ?>" type="hidden" />
+	<input x-model="<?php echo esc_attr( "options.$key" ); ?>" type="hidden" />
 	<?php
 }
 
-function print_licensekey_field( $key, $option ) {
+function print_licensekey_field( string $key, array $option ): void {
 
-	$readonly = Common\get_defined_key( $key ) ? 'readonly' : '';
+	$readonly = get_defined_key( $key ) ? 'readonly' : '';
 	?>
 	<p>
 		<label>
 			<?php label_text( $option ); ?>
-			<input v-model="<?php echo esc_attr( "vm.$key" ); ?>" type="text" class="medium-text" style="width: 350px;" <?php echo esc_attr( $readonly ); ?> />
-			<?php if ( Common\has_valid_key( $key ) ) : ?>
-				<button @click="action( 'deactivate', '<?php echo esc_attr( $key ); ?>' )" class="button button-secondary">Deactivate</button>
+			<input x-model="<?php echo esc_attr( "options.$key" ); ?>" type="text" class="medium-text" style="width: 350px;" <?php echo esc_attr( $readonly ); ?> />
+			<?php if ( has_valid_key( $key ) ) : ?>
+				<button @click="action( 'deactivate', '<?php echo esc_attr( "options.$key" ); ?>' )" class="button button-secondary">Deactivate</button>
 			<?php else : ?>
-				<button @click="action( 'activate', '<?php echo esc_attr( $key ); ?>' )" class="button button-secondary">Activate</button>
+				<button @click="action( 'activate', '<?php echo esc_attr( "options.$key" ); ?>' )" class="button button-secondary">Activate</button>
 			<?php endif; ?>
 			<br>
 			Status: <?php echo esc_html( "{{ vm.{$key}_status }}" ); ?>
@@ -115,14 +117,14 @@ function print_licensekey_field( $key, $option ) {
 	<?php
 }
 
-function print_image_upload_field( $key, $option ) {
+function print_image_upload_field( string $key, array $option ): void {
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_media();
 	?>
 	<p>
 		<label>
 			<?php label_text( $option ); ?>
-			<input v-model="<?php echo esc_attr( "vm.$key" ); ?>" type="text" class="large-text" />
+			<input x-model="<?php echo esc_attr( "options.$key" ); ?>" type="text" class="large-text" />
 			<a class="button-secondary" @click="<?php echo esc_attr( "uploadImage('$key')" ); ?>">
 				<?php esc_html_e( 'Upload Image', 'advanced-responsive-video-embedder' ); ?>
 			</a>
@@ -131,24 +133,24 @@ function print_image_upload_field( $key, $option ) {
 	<?php
 }
 
-function print_integer_field( $key, $option ) {
+function print_integer_field( string $key, array $option ): void {
 	?>
 	<p>
 		<label>
 			<?php label_text( $option ); ?>
-			<input v-model="<?php echo esc_attr( "vm.$key" ); ?>" type="number" />
+			<input x-model="<?php echo esc_attr( "options.$key" ); ?>" type="number" />
 		</label>
 	</p>
 	<?php
 }
 
-function print_select_field( $key, $option ) {
+function print_select_field( string $key, array $option ): void {
 
 	?>
 	<p>
 		<label>
 			<?php label_text( $option ); ?>
-			<select v-model="<?php echo esc_attr( "vm.$key" ); ?>">
+			<select x-model="<?php echo esc_attr( "options.$key" ); ?>" >
 				<option disabled>Please select one</option>
 				<?php foreach ( $option['options'] as $k => $v ) : ?>
 					<option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $v ); ?></option>
@@ -170,10 +172,10 @@ function block_attr( $key, $option ) {
 		);
 	}
 
-	return Common\attr( $block_attr );
+	return attr( $block_attr );
 }
 
-function print_settings_blocks( array $settings, array $sections, array $premium_sections, $context ) {
+function print_settings_blocks( array $settings, array $sections, array $premium_sections, string $context ): void {
 
 	$description_allowed_html = array(
 		'a'      => array(
@@ -190,6 +192,10 @@ function print_settings_blocks( array $settings, array $sections, array $premium
 	// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 	foreach ( $settings as $key => $option ) {
 
+		if ( 'settings-page' === $context && empty($option['option']) ) {
+			continue;
+		}
+
 		if ( 'settings-page' === $context && ! empty($option['options']) ) {
 			unset($option['options']['']);
 		}
@@ -203,7 +209,7 @@ function print_settings_blocks( array $settings, array $sections, array $premium
 			?>
 			<div 
 				class="<?php echo esc_attr( $block_class ); ?>"
-				v-show="sectionsDisplayed['<?php echo esc_attr( $option['tag'] ); ?>']"
+				x-showw="tab == '<?php echo esc_attr( $option['tag'] ); ?>'"
 			>
 				<?php
 				$function = __NAMESPACE__ . "\\print_{$field_type}_field";

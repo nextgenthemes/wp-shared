@@ -1,0 +1,25 @@
+@import "../../node_modules/bootstrap/scss/mixins/banner";
+@include bsBanner(Grid);
+
+$include-column-box-sizing: true;
+$enable-shadows: true;
+$enable-grid-classes: false;
+$enable-cssgrid: true;
+
+// scss-docs-start import-stack
+// Configuration
+@import "../../node_modules/bootstrap/scss/functions";
+@import "../../node_modules/bootstrap/scss/variables";
+@import "../../node_modules/bootstrap/scss/variables-dark";
+@import "../../node_modules/bootstrap/scss/maps";
+@import "../../node_modules/bootstrap/scss/mixins";
+@import "../../node_modules/bootstrap/scss/utilities";
+
+// Layout & components
+@import "../../node_modules/bootstrap/scss/root";
+
+.ngt {
+  @import "../../node_modules/bootstrap/scss/reboot";
+  @import "../../node_modules/bootstrap/scss/forms";
+  @import "../../node_modules/bootstrap/scss/buttons";
+}

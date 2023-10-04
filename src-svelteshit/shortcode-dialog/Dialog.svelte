@@ -17,28 +17,28 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
+	class="ngt"
 	bind:this={dialog}
 	on:close={() => (showModal = false)}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation class="grid">
 		<slot />
-		<div>
+		<div class="btn-grid">
 			<!-- svelte-ignore a11y-autofocus -->
-			<button class="buttom-secondary" autofocus on:click={() => dialog.close()}>Cancel</button>
-			<!-- svelte-ignore a11y-autofocus -->
-			<button class="buttom-primary" autofocus on:click={() => insertShortcode()}>Insert Shortcode</button>
+			<button class="button-secondary" on:click|preventDefault={() => dialog.close()}>Cancel</button>
+			<button class="button-primary" on:click|preventDefault={() => insertShortcode()}>Insert Shortcode</button>
 		</div>
 	</div>
 </dialog>
 
 <style lang="scss">
 	dialog {
-		height: 99vh;
+		height: 99.9vh;
 		max-width: 900px;
 		width: 100vw;
 		border-radius: 5px;
-		border: 1px solid red;
+		border: none;
 		box-sizing: border-box;
 		padding: 0;
 
@@ -65,6 +65,16 @@
 		}
 	}
 
+	:global(.debug dialog:not([open])) {
+		display: block !important;
+	}
+
+	:global(dialog *),
+	:global(dialog *:before),
+	:global(dialog *:after) {
+		box-sizing: inherit !important;
+	}
+
 	.grid {
 		height: 100%;
 		display: grid;
@@ -81,6 +91,10 @@
 
 		@media (min-width: 900px) {
 			padding: 2rem;
+		}
+
+		> div {
+			margin: 10px;
 		}
 	}
 
@@ -102,7 +116,18 @@
 		}
 	}
 
-	button {
-		display: block;
+	.btn-grid {
+		display: grid;
+		grid-template-columns: minmax(0, auto) 1fr;
+
+		.button-primary {
+			border-start-start-radius: 0;
+			border-end-start-radius: 0;
+		}
+
+		.button-secondary {
+			border-start-end-radius: 0;
+			border-end-end-radius: 0;
+		}
 	}
 </style>

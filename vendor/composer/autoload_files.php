@@ -6,14 +6,14 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    '0b26b6bb4ad9ab9c89426b9458e38836' => $baseDir . '/php/WP/functions-asset-helpers.php',
-    'a0bb299fff35886d910a7ea3bf8f3fde' => $baseDir . '/php/WP/functions-compat.php',
-    '7815eba235acb2ddf6ab32dcbe10140c' => $baseDir . '/php/WP/functions-deprecated.php',
-    '48f1f6dd27647c0a754bfb138a65e316' => $baseDir . '/php/WP/functions-array.php',
-    '15c5628ada16c527bb814d976d25da4b' => $baseDir . '/php/WP/functions-string.php',
-    '5e0515b37788079fd88203e8dcb7adcc' => $baseDir . '/php/WP/functions-misc.php',
-    '4d87336cb63515a2bafc3a4079e13205' => $baseDir . '/php/WP/functions-settings.php',
-    '874c9b2fa8938d4f3e09a999a441a208' => $baseDir . '/php/WP/functions-license.php',
-    '0669c9c4d79284bb1d15bcb2410f6f89' => $baseDir . '/php/WP/functions-remote-get.php',
-    '41d8125551c5c5e9f21e1c9eea6a3315' => $baseDir . '/php/WP/Admin/load-admin-files.php',
+    '2c5edecb5805ab7ce106296b4e6d89c8' => $baseDir . '/includes/WP/functions-asset-helpers.php',
+    '804c88e3964d89cdd31e4a279f5fc105' => $baseDir . '/includes/WP/functions-compat.php',
+    '6bd2b4b860c5ecaee7b5a7d55684f111' => $baseDir . '/includes/WP/functions-deprecated.php',
+    'a51610f267c7f0f95da80224921b9fd8' => $baseDir . '/includes/WP/functions-array.php',
+    'd380d2d0eedf93f8dbfba8d0bf43e06c' => $baseDir . '/includes/WP/functions-string.php',
+    '0eeb2f86b2f0b6f81f65926a9991158f' => $baseDir . '/includes/WP/functions-misc.php',
+    '5c407cb14904686c380305e979f5ab55' => $baseDir . '/includes/WP/functions-settings.php',
+    '6ab22335137d282cb7c0a25b94ca2655' => $baseDir . '/includes/WP/functions-license.php',
+    'd1bc7a24811986f37a21b5862df82b71' => $baseDir . '/includes/WP/functions-remote-get.php',
+    '83b8ee913c5d2d5a8f26b42bc5db8bfb' => $baseDir . '/includes/WP/Admin/load-admin-files.php',
 );
