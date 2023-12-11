@@ -47,6 +47,10 @@ function remote_get_json_cached( string $url, array $args = array(), string $jso
 	return $response;
 }
 
+/**
+ * Undocumented function
+ * @return mixed|WP_Error
+ */
 function remote_get_body( string $url, array $args = array() ) {
 
 	$response      = wp_safe_remote_get( $url, $args );
@@ -61,7 +65,7 @@ function remote_get_body( string $url, array $args = array() ) {
 		return new \WP_Error(
 			$response_code,
 			sprintf(
-				// Translators: 1 URL 2 HTTP presponse code.
+				// Translators: 1 URL 2 HTTP response code.
 				__( 'url: %1$s Status code 200 expected but was %2$s.', 'advanced-responsive-video-embedder' ),
 				$url,
 				$response_code
@@ -113,4 +117,9 @@ function get_image_size( string $img_url ) {
 	}
 
 	return getimagesizefromstring( $response );
+}
+
+function get_redirected_url( string $url ): string {
+	$headers = @get_headers($url, true);
+	return $headers['Location'];
 }

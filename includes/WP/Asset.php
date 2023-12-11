@@ -14,8 +14,9 @@ class Asset {
 	private string $media    = 'all';
 	private string $strategy = '';
 
+
 	private $ver            = false;
-	private bool $in_footer = true;
+	private bool $in_footer = false;
 
 	private bool $async   = false;
 	private bool $defer   = false;
@@ -111,6 +112,7 @@ class Asset {
 		) {
 			throw new Exception( 'Wrong inline_script_xxxxx type' );
 		}
+
 		return $inline_script;
 	}
 
@@ -126,6 +128,7 @@ class Asset {
 		) {
 			throw new Exception( 'Wrong src type' );
 		}
+
 		return $ver;
 	}
 

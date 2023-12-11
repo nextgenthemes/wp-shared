@@ -1,13 +1,18 @@
 <?php declare(strict_types=1);
 namespace Nextgenthemes\WP\Admin;
 
+use \Nextgenthemes\ARVE;
+use \Nextgenthemes\WP;
+
+use const Nextgenthemes\ARVE\PREMIUM_URL_PREFIX;
+
 use function \Nextgenthemes\WP\attr;
 use function \Nextgenthemes\WP\get_defined_key;
 use function \Nextgenthemes\WP\has_valid_key;
 
 function label_text( array $option ): void {
 	?>
-	<span class="nextgenthemes-label-text">
+	<span class="ngt-label-text">
 		<?php
 		echo esc_html( $option['label'] );
 
@@ -39,7 +44,7 @@ function print_boolean_field( string $key, array $option ): void {
 				type="checkbox"
 				x-model="<?php echo esc_attr( "options.$key" ); ?>"
 			>
-			<?php label_text( $option ); ?> -- <span x-text="<?php echo esc_attr( "options.$key" ); ?>"></span>
+			<?php label_text( $option ); ?>
 		</label>
 	</p>
 	<?php
@@ -53,7 +58,6 @@ function print_boolean_radio_field( string $key, array $option ): void {
 			<input
 				type="radio"
 				x-model="<?php echo esc_attr( "options.$key" ); ?>"
-				v-bind:value="true"
 				name="<?php echo esc_attr( "options.$key" ); ?>"
 			>
 			Yes
@@ -63,7 +67,6 @@ function print_boolean_radio_field( string $key, array $option ): void {
 			<input
 				type="radio"
 				x-model="<?php echo esc_attr( "options.$key" ); ?>"
-				v-bind:value="false"
 				name="<?php echo esc_attr( "options.$key" ); ?>"
 			>
 			No
@@ -110,7 +113,7 @@ function print_licensekey_field( string $key, array $option ): void {
 			<?php else : ?>
 				<button @click="action( 'activate', '<?php echo esc_attr( "options.$key" ); ?>' )" class="button button-secondary">Activate</button>
 			<?php endif; ?>
-			<br>
+			<br>ss
 			Status: <?php echo esc_html( "{{ vm.{$key}_status }}" ); ?>
 		</label>
 	</p>
@@ -161,7 +164,7 @@ function print_select_field( string $key, array $option ): void {
 	<?php
 }
 
-function block_attr( $key, $option ) {
+function block_attr( string $key, array $option ): string {
 
 	if ( empty( $option['tag'] ) ) {
 		$block_attr['class'] = "ngt-option-block ngt-option-block--$key";
@@ -206,14 +209,18 @@ function print_settings_blocks( array $settings, array $sections, array $premium
 		$block_class        = "ngt-option-block ngt-option-block--$key ngt-option-block--{$option['tag']}";
 
 		if ( 'hidden' !== $field_type ) :
+
 			?>
 			<div 
 				class="<?php echo esc_attr( $block_class ); ?>"
-				x-showw="tab == '<?php echo esc_attr( $option['tag'] ); ?>'"
+				<?php if ( 'settings-page' === $context ) : ?>
+					x-show="tab == '<?php echo esc_attr( $option['tag'] ); ?>'"
+				<?php endif; ?>
 			>
 				<?php
-				$function = __NAMESPACE__ . "\\print_{$field_type}_field";
-
+				$function = ( 'settings-page' === $context ) ?
+					__NAMESPACE__ . "\\print_{$field_type}_field" :
+					__NAMESPACE__ . '\\print_dialog_field';
 				$function( $key, $option );
 
 				if ( ! empty( $option['description'] ) ) {
@@ -228,4 +235,97 @@ function print_settings_blocks( array $settings, array $sections, array $premium
 			<?php
 		endif;
 	}
+}
+
+function print_dialog_field( string $key, array $option ): void {
+
+	$wrapper_attr = array(
+		'class' => ( 'boolean' === $option['type'] ) ? 'input-group' : false,
+	);
+
+	$inner_wrapper_attr = array(
+		'class' => ( 'boolean' === $option['type'] ) ? 'form-floating' : false,
+		'style' => 'position: relative',
+	);
+
+	?>
+	<div <?php echo WP\attr( $wrapper_attr ); ?>>
+
+		<div <?php echo WP\attr( $inner_wrapper_attr ); ?>>
+
+			<?php
+			switch ( $option['type'] ) {
+				case 'attachment':
+				case 'string':
+					$input_type = 'text';
+					break;
+				case 'integer':
+					$input_type = 'number';
+					break;
+				case 'boolean':
+					$input_type = 'checkbox';
+					break;
+			}
+
+			if ( 'select' === $option['type'] ) {
+				?>
+				<select 
+					id="<?php echo esc_attr( "options.$key" ); ?>"
+					x-model="<?php echo esc_attr( "options.$key" ); ?>"
+				>
+					<option disabled>Please select one</option>
+					<?php foreach ( $option['options'] as $k => $v ) : ?>
+						<option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $v ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<?php
+			} else {
+				printf(
+					'<input %s />',
+					WP\attr(
+						array(
+							'type'        => $input_type,
+							'id'          => "options.$key",
+							'x-model'     => "options.$key",
+							'placeholder' => isset($option['placeholder']) ? $option['placeholder'] : false,
+							'class'       => 'form-control',
+						)
+					)
+				);
+			}
+
+			printf(
+				'<label %s>%s</label>',
+				WP\attr(
+					array(
+						'for'         => "options.$key",
+						'x-model'     => "options.$key",
+						'class'       => 'form-control',
+					)
+				),
+				esc_html( $option['label'] )
+			);
+
+	if ( $option['premium'] ) {
+		printf(
+			'<a %s>%s</a>',
+			WP\attr(
+				array(
+					'class' => 'button-primary premium-link',
+					'href'  => PREMIUM_URL_PREFIX . $option['tag'],
+				)
+			),
+			esc_html( $option['tag'] )
+		);
+	}
+	?>
+		</div>
+
+		<?php if ( 'attachment' === $option['type'] ) : ?>
+			<button class="button-secondary button-secondary--select-thumbnail" type="button" @click="<?php echo esc_attr( "uploadImage($key)" ); ?>">Select Image</button>
+		<?php endif; ?>
+
+	</div>
+
+	<?php
 }

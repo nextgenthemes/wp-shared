@@ -48,13 +48,12 @@ class Settings {
 		$this->slashed_namespace   = str_replace( '_', '/', $this->slugged_namespace );
 		$this->rest_namespace      = $this->slugged_namespace . '/v1';
 
-		$this->set_namespaces( $args['namespace'] );
 		$this->set_default_options();
 
 		$this->options = (array) get_option( $this->slugged_namespace, array() );
 		$this->options = $this->options + $this->options_defaults;
 
-		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ), 9 );
 		add_action( 'rest_api_init', array( $this, 'register_rest_route' ) );
 		add_action( 'admin_menu', array( $this, 'register_setting_page' ) );
 	}
@@ -201,25 +200,19 @@ class Settings {
 
 	public function assets( string $page ): void {
 
+		register_asset(
+			array(
+				'handle'   => 'alpinejs',
+				'src'      => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/alpine.js',
+				'path'     => __DIR__ . '/alpine.js',
+				'defer'    => true,
+			)
+		);
+
 		// Check if we are currently viewing our setting page
 		if ( ! str_ends_with( $page, $this->slugged_namespace ) ) {
 			return;
 		}
-
-		$settings_css_path = get_first_glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.css' );
-		$settings_js_path  = get_first_glob( $this->base_path . 'vendor/nextgenthemes/wp-shared/dist/assets/settings-*.js' );
-
-		if ( ! $settings_css_path || ! $settings_js_path ) {
-			trigger_error( 'Could not find file in path', E_USER_WARNING );
-		}
-
-		enqueue_asset(
-			array(
-				'handle' => 'nextgenthemes-settings',
-				'src'    => $this->base_url . 'vendor/nextgenthemes/wp-shared/dist/assets/' . basename( $settings_css_path ),
-				'path'   => $settings_css_path,
-			)
-		);
 
 		$settings_data = array(
 			'options'          => $this->options,
@@ -235,10 +228,9 @@ class Settings {
 
 		enqueue_asset(
 			array(
-				'handle'               => 'alpinejs',
-				'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/alpine.js',
-				'path'                 => __DIR__ . '/alpine.js',
-				'defer'                => true,
+				'handle' => 'nextgenthemes-settings',
+				'src'    => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/settings.css',
+				'path'   => __DIR__ . '/settings.css',
 			)
 		);
 
@@ -248,7 +240,6 @@ class Settings {
 				'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/settings.js',
 				'path'                 => __DIR__ . '/settings.js',
 				'deps'                 => array( 'alpinejs', 'jquery' ),
-				'defer'                => true,
 				'inline_script_before' => "var {$this->slugged_namespace} = " . \wp_json_encode( $settings_data ) . ';',
 			)
 		);
@@ -316,7 +307,7 @@ class Settings {
 			<p><?php esc_html_e( 'You may already set options for addons but they will only take effect if the associated addons are installed.', 'advanced-responsive-video-embedder' ); ?>
 			</p>
 		</div>
-			<?php
+		<?php
 	}
 
 	private function print_reset_bottons(): void {
@@ -353,95 +344,37 @@ class Settings {
 
 		wp_enqueue_media();
 		?>
-		<div class="wrap wrap--nextgenthemes" x-data="{ tab: 'all' }">
+		<div class="wrap wrap--nextgenthemes" x-data="{ tab: 'main' }">
 			<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
 
 			<h2 class="nav-tab-wrapper" >
-				<button class="nav-tab">
-					<span x-text="tab"></span>
-				</button>
-
 				<div x-data='<?php echo wp_json_encode( [ 'sections' => $this->sections ], JSON_PRETTY_PRINT, JSON_HEX_APOS ); ?>'>
 					<template x-for="[id, value] in Object.entries(sections)">
-						<button class="nav-tab" :class="id === tab ? 'nav-tab-active' : ''" x-on:click="tab = id">
+						<button class="nav-tab" :class="id === tab ? 'nav-tab-active' : ''" @click="tab = id">
 							<span x-text="value"></span>
 						</button>
 					</template>
 				</div>
 			</h2>
 
-			<div x-data="ngtsettings" >
-				<div hidden x-text="JSON.stringify(options)"></div>
-				<div x-text="message"></div>
+			<div class="ngt-settings-grid" x-data="ngtsettings" x-init="$watch('options', value => saveOptions())">
 
-				<button @click="click()">Say Hello</button><br>
-				<button @click="saveOptions()">Save</button>
+				<div class="ngt-settings-grid__content">
 
-				<?php print_settings_blocks($this->settings, $this->sections, $this->premium_sections, 'settings-page'); ?>
+					<?php do_action( $this->slashed_namespace . '/admin/settings/content', $this ); ?>
+
+					<?php print_settings_blocks($this->settings, $this->sections, $this->premium_sections, 'settings-page'); ?>
+
+				</div>
+
+				<div class="ngt-settings-grid__sidebar">
+
+					<p></p>
+					<p><span x-text="message"></span>&nbsp;</p>
+
+					<?php do_action( $this->slashed_namespace . '/admin/settings/sidebar', $this ); ?>
+				</div>
 			</div>
-
-			<script>
-				document.addEventListener('alpine:init', () => {
-					Alpine.data('ngtsettings', () => ({
-						options: <?php echo wp_json_encode( $this->options, JSON_PRETTY_PRINT ); ?>,
-						message: '',
-						isSaving: false,
-						click() {
-							console.log(this.options);
-						},
-						saveOptions( refreshAfterSave = false ) {
-
-							if ( this.isSaving ) {
-								this.message = 'trying to save too fast';
-								return;
-							}
-
-							// set the state so that another save cannot happen while processing
-							this.isSaving = true;
-							this.message = 'Saving...';
-
-							// Make a POST request to the REST API route that we registered in our PHP file
-							window.jQuery.ajax( {
-								url: restUrl + '/save',
-								method: 'POST',
-								data: this.options,
-
-								// set the nonce in the request header
-								beforeSend( request ) {
-									request.setRequestHeader( 'X-WP-Nonce', nonce );
-								},
-
-								// callback to run upon successful completion of our request
-								success: () => {
-									this.message = 'Options saved';
-									setTimeout( () => ( this.message = '' ), 1000 );
-								},
-
-								// callback to run if our request caused an error
-								error: ( errorData ) => {
-									this.message = errorData.responseText;
-									refreshAfterSave = false;
-								},
-
-								// when our request is complete (successful or not), reset the state to indicate we are no longer saving
-								complete: () => {
-									this.isSaving = false;
-
-									if ( refreshAfterSave ) {
-										refreshAfterSave = false;
-										window.location.reload();
-									}
-								},
-							} );
-						}
-					}))
-				})
-
-				function licenseKeyAction( action, product ) {
-					$options['action'] = JSON.stringify( { action, product } );
-					saveOptions( true );
-				}
-			</script>
 
 			<?php
 			/*
@@ -453,8 +386,9 @@ class Settings {
 			$this->print_reset_bottons();
 			*/
 			?>
-			</div>
-			<?php
+		</div>
+		<?php
+
 	}
 
 	public function register_setting_page(): void {
