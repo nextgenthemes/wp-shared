@@ -10,6 +10,18 @@ use function \Nextgenthemes\WP\attr;
 use function \Nextgenthemes\WP\get_defined_key;
 use function \Nextgenthemes\WP\has_valid_key;
 
+const DESCRIPTION_ALLOWED_HTML = array(
+	'a'      => array(
+		'href'   => array(),
+		'target' => array(),
+		'title'  => array(),
+	),
+	'br'     => array(),
+	'em'     => array(),
+	'strong' => array(),
+	'code'   => array(),
+);
+
 function label_text( array $option ): void {
 	?>
 	<span class="ngt-label-text">
@@ -100,21 +112,25 @@ function print_old_hidden_field( string $key, array $option ): void {
 	<?php
 }
 
-function print_licensekey_field( string $key, array $option ): void {
+function print_license_key_field( string $key, array $option ): void {
 
 	$readonly = get_defined_key( $key ) ? 'readonly' : '';
 	?>
 	<p>
 		<label>
 			<?php label_text( $option ); ?>
-			<input x-model="<?php echo esc_attr( "options.$key" ); ?>" type="text" class="medium-text" style="width: 350px;" <?php echo esc_attr( $readonly ); ?> />
+			<input x-model="<?php echo esc_attr( "options.$key" ); ?>"
+				type="text" class="medium-text" 
+				style="width: 350px;" 
+				<?php echo esc_attr( $readonly ); ?>
+			/>
 			<?php if ( has_valid_key( $key ) ) : ?>
-				<button @click="action( 'deactivate', '<?php echo esc_attr( "options.$key" ); ?>' )" class="button button-secondary">Deactivate</button>
+				<button @click="licenseKeyAction( 'deactivate', '<?php echo esc_attr( $key ); ?>' )" class="button button-secondary">Deactivate</button>
 			<?php else : ?>
-				<button @click="action( 'activate', '<?php echo esc_attr( "options.$key" ); ?>' )" class="button button-secondary">Activate</button>
+				<button @click="licenseKeyAction( 'activate', '<?php echo esc_attr( $key ); ?>' )" class="button button-secondary">Activate</button>
 			<?php endif; ?>
-			<br>ss
-			Status: <?php echo esc_html( "{{ vm.{$key}_status }}" ); ?>
+			<br>
+			Status: <span x-text="<?php echo esc_attr( "options.{$key}_status" ); ?>"></span>
 		</label>
 	</p>
 	<?php
@@ -180,18 +196,6 @@ function block_attr( string $key, array $option ): string {
 
 function print_settings_blocks( array $settings, array $sections, array $premium_sections, string $context ): void {
 
-	$description_allowed_html = array(
-		'a'      => array(
-			'href'   => array(),
-			'target' => array(),
-			'title'  => array(),
-		),
-		'br'     => array(),
-		'em'     => array(),
-		'strong' => array(),
-		'code'   => array(),
-	);
-
 	// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 	foreach ( $settings as $key => $option ) {
 
@@ -224,9 +228,16 @@ function print_settings_blocks( array $settings, array $sections, array $premium
 				$function( $key, $option );
 
 				if ( ! empty( $option['description'] ) ) {
+
+					$attr = array(
+						'class'  => 'arve-sc-dialog__description',
+						'hidden' => ( 'settings-page' === $context ) ? false : true,
+					);
+
 					printf(
-						'<p>%s</p>',
-						wp_kses( $option['description'], $description_allowed_html )
+						'<p %s>%s</p>',
+						attr( $attr ),
+						wp_kses( $option['description'], DESCRIPTION_ALLOWED_HTML )
 					);
 				}
 				?>
@@ -240,11 +251,11 @@ function print_settings_blocks( array $settings, array $sections, array $premium
 function print_dialog_field( string $key, array $option ): void {
 
 	$wrapper_attr = array(
-		'class' => ( 'boolean' === $option['type'] ) ? 'input-group' : false,
+		'class' => ( 'attachment' === $option['type'] ) ? 'input-group' : false,
 	);
 
 	$inner_wrapper_attr = array(
-		'class' => ( 'boolean' === $option['type'] ) ? 'form-floating' : false,
+		'class' => ( 'boolean' === $option['type'] ) ? 'form-check form-switch' : 'form-floating',
 		'style' => 'position: relative',
 	);
 
@@ -271,6 +282,7 @@ function print_dialog_field( string $key, array $option ): void {
 				?>
 				<select 
 					id="<?php echo esc_attr( "options.$key" ); ?>"
+					class="form-select"
 					x-model="<?php echo esc_attr( "options.$key" ); ?>"
 				>
 					<option disabled>Please select one</option>
@@ -287,8 +299,9 @@ function print_dialog_field( string $key, array $option ): void {
 							'type'        => $input_type,
 							'id'          => "options.$key",
 							'x-model'     => "options.$key",
+							'value'       => ( 'checkbox' === $input_type ) ? 'ttrue' : false,
 							'placeholder' => isset($option['placeholder']) ? $option['placeholder'] : false,
-							'class'       => 'form-control',
+							'class'       => ( 'boolean' === $option['type'] ) ? 'form-check-input' : 'form-control',
 						)
 					)
 				);
@@ -300,7 +313,7 @@ function print_dialog_field( string $key, array $option ): void {
 					array(
 						'for'         => "options.$key",
 						'x-model'     => "options.$key",
-						'class'       => 'form-control',
+						'class'       => ( 'boolean' === $option['type'] ) ? 'form-check-label' : false,
 					)
 				),
 				esc_html( $option['label'] )
@@ -311,7 +324,7 @@ function print_dialog_field( string $key, array $option ): void {
 			'<a %s>%s</a>',
 			WP\attr(
 				array(
-					'class' => 'button-primary premium-link',
+					'class' => 'button-primary arve-premium-link',
 					'href'  => PREMIUM_URL_PREFIX . $option['tag'],
 				)
 			),
@@ -322,7 +335,7 @@ function print_dialog_field( string $key, array $option ): void {
 		</div>
 
 		<?php if ( 'attachment' === $option['type'] ) : ?>
-			<button class="button-secondary button-secondary--select-thumbnail" type="button" @click="<?php echo esc_attr( "uploadImage($key)" ); ?>">Select Image</button>
+			<button class="button-secondary button-secondary--select-thumbnail" type="button" @click="<?php echo esc_attr( "uploadImage('$key')" ); ?>">Select Image</button>
 		<?php endif; ?>
 
 	</div>

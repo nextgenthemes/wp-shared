@@ -71,10 +71,9 @@ document.addEventListener( 'alpine:init', () => {
 					alpineThis.options[ optionKey ] = attachmentID;
 				} );
 		},
+		licenseKeyAction( action, product ) {
+			this.options.action = JSON.stringify( { action, product } );
+			this.saveOptions( true );
+		},
 	} ) );
 } );
-
-function licenseKeyAction( action, product ) {
-	$options.action = JSON.stringify( { action, product } );
-	saveOptions( true );
-}

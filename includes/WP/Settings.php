@@ -200,12 +200,13 @@ class Settings {
 
 	public function assets( string $page ): void {
 
+		// register to use in other places
 		register_asset(
 			array(
 				'handle'   => 'alpinejs',
 				'src'      => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/alpine.js',
 				'path'     => __DIR__ . '/alpine.js',
-				'defer'    => true,
+				'strategy' => 'defer',
 			)
 		);
 
@@ -226,6 +227,9 @@ class Settings {
 			'definedKeys'      => $this->defined_keys,
 		);
 
+		// purpusefully NOT put into any deps because WP would not add defer to it in that case
+		wp_enqueue_script( 'alpinejs' );
+
 		enqueue_asset(
 			array(
 				'handle' => 'nextgenthemes-settings',
@@ -239,7 +243,7 @@ class Settings {
 				'handle'               => 'nextgenthemes-settings',
 				'src'                  => $this->base_url . 'vendor/nextgenthemes/wp-shared/includes/WP/Admin/settings.js',
 				'path'                 => __DIR__ . '/settings.js',
-				'deps'                 => array( 'alpinejs', 'jquery' ),
+				'deps'                 => array( 'jquery' ),
 				'inline_script_before' => "var {$this->slugged_namespace} = " . \wp_json_encode( $settings_data ) . ';',
 			)
 		);
@@ -343,8 +347,11 @@ class Settings {
 	public function print_admin_page(): void {
 
 		wp_enqueue_media();
+
 		?>
-		<div class="wrap wrap--nextgenthemes" x-data="{ tab: 'main' }">
+		<div class="wrap wrap--nextgenthemes"
+			x-data='<?php echo wp_json_encode( [ 'tab' => array_key_first( $this->sections ) ], JSON_PRETTY_PRINT, JSON_HEX_APOS ); ?>'
+		>
 			<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
 
 			<h2 class="nav-tab-wrapper" >

@@ -5,6 +5,6 @@ if ( is_admin() ) {
 	require_once __DIR__ . '/EDD/PluginUpdater.php';
 	require_once __DIR__ . '/EDD/ThemeUpdater.php';
 	require_once __DIR__ . '/Notices.php';
-	require_once __DIR__ . '/functions-licensing.php';
-	require_once __DIR__ . '/functions-settings.php';
+	require_once __DIR__ . '/fn-licensing.php';
+	require_once __DIR__ . '/fn-settings.php';
 }

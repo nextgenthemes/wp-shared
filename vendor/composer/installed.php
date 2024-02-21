@@ -3,7 +3,7 @@
         'name' => 'nextgenthemes/wp-shared',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'b3b5c3780e1d4b3b2d8378d81205038a3ba6f538',
+        'reference' => 'b3df661276a20712883cd3faca9e50dbba58196b',
         'type' => 'wp-package',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'nextgenthemes/wp-shared' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'b3b5c3780e1d4b3b2d8378d81205038a3ba6f538',
+            'reference' => 'b3df661276a20712883cd3faca9e50dbba58196b',
             'type' => 'wp-package',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

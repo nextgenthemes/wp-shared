@@ -7,15 +7,15 @@
             "WP\\": "includes/WP"
         },
         "files": [
-            "includes/WP/functions-asset-helpers.php",
-            "includes/WP/functions-compat.php",
-            "includes/WP/functions-deprecated.php",
-            "includes/WP/functions-array.php",
-            "includes/WP/functions-string.php",
-            "includes/WP/functions-misc.php",
-            "includes/WP/functions-settings.php",
-            "includes/WP/functions-license.php",
-            "includes/WP/functions-remote-get.php",
+            "includes/WP/fn-asset-helpers.php",
+            "includes/WP/fn-compat.php",
+            "includes/WP/fn-deprecated.php",
+            "includes/WP/fn-array.php",
+            "includes/WP/fn-string.php",
+            "includes/WP/fn-misc.php",
+            "includes/WP/fn-settings.php",
+            "includes/WP/fn-license.php",
+            "includes/WP/fn-remote-get.php",
             "includes/WP/Admin/load-admin-files.php"
         ]
     },
@@ -25,6 +25,9 @@
         }
     ],
     "require": {
-        "php": ">=7.2"
+        "php": ">=7.4"
+    },
+    "scripts": {
+        "update": "wget https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js -O ./includes/WP/Admin/alpine.js"
     }
 }

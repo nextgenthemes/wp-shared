@@ -1,15 +1,14 @@
 <?php declare(strict_types=1);
 namespace Nextgenthemes\WP;
 
-use const Nextgenthemes\ARVE\PLUGIN_FILE;
-use Nextgenthemes\WP\Settings;
+use \Nextgenthemes\WP\Settings;
 
-use function Nextgenthemes\ARVE\Admin\add_action_links;
+require_once 'Settings.php';
 
 /**
  * @return mixed
  */
-function nextgenthemes_settings_instance( string $plugin_file ) {
+function nextgenthemes_settings_instance( string $base_url, string $base_path ) {
 
 	static $inst = null;
 
@@ -25,8 +24,8 @@ function nextgenthemes_settings_instance( string $plugin_file ) {
 				),
 				'menu_title'          => esc_html__( 'NextGenThemes Settings', 'advanced-responsive-video-embedder' ),
 				'settings_page_title' => esc_html__( 'NextGenThemes Settings', 'advanced-responsive-video-embedder' ),
-				'base_url'            => plugins_url( '', $plugin_file ),
-				'base_path'           => plugin_dir_path( $plugin_file ),
+				'base_url'            => $base_url,
+				'base_path'           => $base_path,
 			)
 		);
 
@@ -48,7 +47,7 @@ function nextgenthemes_settings(): array {
 			// translators: %s is Product name
 			'label'   => sprintf( esc_html__( '%s license Key', 'advanced-responsive-video-embedder' ), $value['name'] ),
 			'type'    => 'string',
-			'ui'      => 'license-key',
+			'ui'      => 'license_key',
 		);
 
 		$settings[ $p . '_status' ] = array(
@@ -95,10 +94,10 @@ function nextgenthemes_settings(): array {
 	return $settings;
 }
 
-function get_products() {
+function get_products(): array {
 
 	$products = array(
-		'arve_pro'           => array(
+		'arve_pro' => array(
 			'namespace' => 'ARVE\Pro',
 			'name'      => 'ARVE Pro',
 			'id'        => 1253,
@@ -106,7 +105,7 @@ function get_products() {
 			'author'    => 'Nicolas Jonas',
 			'url'       => 'https://nextgenthemes.com/plugins/arve-pro/',
 		),
-		'arve_amp'           => array(
+		'arve_amp' => array(
 			'namespace' => 'ARVE\AMP',
 			'name'      => 'ARVE AMP',
 			'id'        => 16941,
@@ -114,7 +113,7 @@ function get_products() {
 			'author'    => 'Nicolas Jonas',
 			'url'       => 'https://nextgenthemes.com/plugins/arve-amp/',
 		),
-		'arve_random_video'  => array(
+		'arve_random_video' => array(
 			'namespace' => 'ARVE\RandomVideo',
 			'name'      => 'ARVE Random Video',
 			'id'        => 31933,

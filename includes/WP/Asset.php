@@ -13,14 +13,11 @@ class Asset {
 	private array $deps      = array();
 	private string $media    = 'all';
 	private string $strategy = '';
+	private $ver             = false;
+	private bool $in_footer  = false;
 
-
-	private $ver            = false;
-	private bool $in_footer = false;
-
-	private bool $async   = false;
-	private bool $defer   = false;
-	private bool $module  = false;
+	// this class only
+	private string $type  = '';
 	private bool $enqueue = false;
 
 	/**
@@ -43,8 +40,6 @@ class Asset {
 
 	/**
 	 * CSS will be put out after the link
-	 *
-	 * @var string CSS
 	 */
 	private string $inline_style = '';
 
@@ -56,15 +51,11 @@ class Asset {
 
 	/**
 	 * Include the CSS in TinyMCE
-	 *
-	 * @var bool
 	 */
 	private bool $mce = false;
 
 	/**
 	 * Absolute path to the asset
-	 *
-	 * @var string
 	 */
 	private string $path = '';
 
@@ -159,7 +150,9 @@ class Asset {
 				wp_register_script( $this->handle, $this->src, $this->deps, $this->ver, $this->in_footer );
 			}
 
-			wp_script_add_data( $this->handle, 'strategy', $this->strategy );
+			if ( $this->type ) {
+				wp_script_add_data( $this->handle, 'type', $this->type );
+			}
 
 			if ( $this->inline_script_before ) {
 				wp_add_inline_script(
@@ -175,16 +168,6 @@ class Asset {
 					static::inline_script($this->inline_script_after, $this->handle, 'after'),
 					'after'
 				);
-			}
-
-			if ( $this->async ) {
-				wp_script_add_data( $this->handle, 'sync', true );
-			} elseif ( $this->defer ) {
-				wp_script_add_data( $this->handle, 'defer', true );
-			}
-
-			if ( $this->module ) {
-				wp_script_add_data( $this->handle, 'module', true );
 			}
 
 			if ( $this->enqueue ) {
@@ -218,7 +201,7 @@ class Asset {
 
 	public static function is_script( string $src ): bool {
 		$src_without_query = strtok( $src, '?' );
-		return '.js' === substr( $src_without_query, -3 ) ? true : false;
+		return str_ends_with( $src_without_query, '.js' );
 	}
 
 	public static function deps_and_ver( string $path ): array {
@@ -263,7 +246,7 @@ class Asset {
 		return $script;
 	}
 
-	public static function add_dep_to_asset( $asset, string $dep ): bool {
+	public static function add_dep_to_asset( \_WP_Dependency $asset, string $dep ): bool {
 
 		if ( ! $asset ) {
 			return false;
@@ -277,12 +260,10 @@ class Asset {
 	}
 
 	/**
-	 * Adds async/defer/type="module" attributes to enqueued / registered scripts.
+	 * Adds type attribute to enqueued / registered scripts. To be used for type="module".
 	 *
-	 * If #12009 lands in WordPress, this function can no-op since it would be handled in core.
 	 *
 	 * @link https://github.com/WordPress/wordpress-develop/blob/trunk/src/wp-content/themes/twentytwenty/classes/class-twentytwenty-script-loader.php
-	 * @link https://core.trac.wordpress.org/ticket/12009
 	 *
 	 * @param string $tag    The script tag.
 	 * @param string $handle The script handle.
@@ -290,27 +271,24 @@ class Asset {
 	 * @return string Script HTML string.
 	 */
 	public static function add_attributes( string $tag, string $handle ): string {
-		foreach ( array( 'async', 'defer' ) as $attr ) {
-			if ( ! wp_scripts()->get_data( $handle, $attr ) ) {
-				continue;
-			}
-			// Prevent adding attribute when already added in #12009.
-			if ( ! preg_match( ":\s$attr(=|>|\s):", $tag ) ) {
-				$tag = preg_replace( ':(?=></script>):', " $attr", $tag, 1 );
-			}
-			// Only allow async or defer, not both.
-			break;
-		}
 
-		if ( wp_scripts()->get_data( $handle, 'module' ) ) {
-			// Prevent adding attribute when already added in #12009.
-			if ( ! preg_match( ':\stype(=|>|\s):', $tag ) ) {
-				$tag = preg_replace( ':(?=></script>):', ' type="module"', $tag, 1 );
+		$type = wp_scripts()->get_data( $handle, 'type' );
+
+		if ( $type ) {
+
+			$tag_processor = new \WP_HTML_Tag_Processor( $tag );
+
+			while ( $tag_processor->next_tag() ) {
+
+				if ( 'SCRIPT' === $tag_processor->get_tag() && $tag_processor->get_attribute( 'src' ) ) {
+					$tag_processor->set_attribute( 'type', $type );
+					break;
+				};
 			}
+
+			$tag = $tag_processor->get_updated_html();
 		}
 
 		return $tag;
 	}
 }
-
-
